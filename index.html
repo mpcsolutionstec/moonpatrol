@@ -373,8 +373,13 @@ function nextPhase(){
    ===================================================================== */
 var keys={};
 function onDown(e){
+  var wasDown=!!keys[e.code]||(e.key&&!!keys[String(e.key).toLowerCase()]);
   keys[e.code]=true;
   if(e.key) keys[String(e.key).toLowerCase()]=true;
+  if(!wasDown&&state==='playing'){
+    if(kH()&&player.cd<=0) fireCannon();
+    if(kU()&&player.mcd<=0) fireMortar();
+  }
   if(e.code==='Enter'||e.code==='NumpadEnter'||e.key==='Enter'||e.keyCode===13){
     initAudio();
     if(state==='menu'||state==='gameover') startGame();
@@ -386,7 +391,16 @@ function onUp(e){ keys[e.code]=false; if(e.key) keys[String(e.key).toLowerCase()
 window.addEventListener('keydown',onDown,false);
 window.addEventListener('keyup',onUp,false);
 canvas.addEventListener('click',function(){ initAudio(); if(state==='menu'||state==='gameover') startGame(); try{canvas.focus();}catch(e){} });
-canvas.addEventListener('touchstart',function(e){ e.preventDefault(); initAudio(); if(state==='menu'||state==='gameover') startGame(); },{passive:false});
+canvas.addEventListener('touchstart',function(e){
+  e.preventDefault(); initAudio();
+  if(state==='menu'||state==='gameover') startGame();
+  else if(state==='playing'&&e.touches&&e.touches.length){
+    var rect=canvas.getBoundingClientRect();
+    var touchX=(e.touches[0].clientX-rect.left)*(W/rect.width);
+    if(touchX<W/2){ if(player.mcd<=0) fireMortar(); }
+    else if(player.cd<=0) fireCannon();
+  }
+},{passive:false});
 
 function kH(){ return keys['KeyZ']||keys['z']||keys['ControlLeft']||keys['ControlRight']; }
 function kU(){ return keys['KeyX']||keys['x']||keys['ArrowUp']||keys['ShiftLeft']||keys['ShiftRight']; }
