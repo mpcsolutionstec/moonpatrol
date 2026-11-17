@@ -8,31 +8,75 @@
   body {
     background:#04010c; color:#fff; font-family:'Courier New',monospace;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-height:100vh; overflow:hidden; user-select:none;
+    min-height:100vh; overflow-x:hidden; user-select:none;
   }
   h1 { color:#ffcc00; text-shadow:0 0 12px #ff6600; margin-bottom:8px; letter-spacing:6px; font-size:25px; }
   #game {
     border:3px solid #ffcc00; box-shadow:0 0 26px #ff5500;
     background:#000; display:block; outline:none; cursor:pointer;
+    width:min(800px,calc(100vw - 28px)); height:auto; aspect-ratio:2/1;
   }
+  #game-page { display:flex; flex-direction:column; align-items:center; width:min(100%,820px); }
   #info { margin-top:10px; color:#999; font-size:12px; text-align:center; line-height:1.85; max-width:820px; }
   .k { display:inline-block; background:#1a1030; border:1px solid #665533; padding:1px 7px;
        border-radius:3px; color:#ffcc00; margin:0 2px; font-weight:bold; }
+  #game-footer, #splash-footer { color:#8e879e; font:11px/1.6 Arial,sans-serif; text-align:center; padding:12px 16px 16px; }
+  #splash {
+    position:fixed; inset:0; z-index:10; display:grid; place-items:center; padding:24px;
+    overflow-y:auto; background:radial-gradient(ellipse at 50% 38%,#24104a 0%,#0b0618 48%,#03020a 100%);
+  }
+  #splash.is-hidden { display:none; }
+  .splash-card {
+    width:min(100%,560px); padding:32px 28px 22px; text-align:center;
+    border:1px solid rgba(255,204,0,.6); border-radius:14px;
+    background:rgba(8,4,20,.82); box-shadow:0 0 42px rgba(255,85,0,.24);
+  }
+  .splash-logo {
+    display:block; width:190px; max-width:56vw; aspect-ratio:1; object-fit:contain;
+    margin:0 auto 18px; padding:8px; border-radius:10px; background:#fff;
+    box-shadow:0 0 28px rgba(255,204,0,.22);
+  }
+  .splash-title { color:#ffcc00; font-size:clamp(26px,7vw,42px); letter-spacing:5px; text-shadow:0 0 14px #ff5500; }
+  .splash-subtitle { margin-top:8px; color:#c2b8d8; font-size:13px; letter-spacing:1px; }
+  #splash-start {
+    margin-top:24px; border:1px solid #ffdb4d; border-radius:5px; padding:13px 28px;
+    color:#140b1e; background:linear-gradient(#ffe780,#ffad27); font:bold 15px 'Courier New',monospace;
+    letter-spacing:1px; cursor:pointer; box-shadow:0 0 18px rgba(255,136,0,.35);
+  }
+  #splash-start:hover, #splash-start:focus-visible { background:#fff0a8; transform:translateY(-1px); }
+  @media (max-height:620px) {
+    body { justify-content:flex-start; }
+    .splash-card { padding:18px 22px 10px; }
+    .splash-logo { width:130px; margin-bottom:10px; }
+    #splash-start { margin-top:14px; }
+  }
 </style>
 </head>
 <body>
-  <h1>★ MOON PATROL ★</h1>
-  <canvas id="game" width="800" height="400" tabindex="0"></canvas>
-  <div id="info">
-    <span class="k">←</span><span class="k">→</span> mover ·
-    <span class="k">ESPAÇO</span> pular ·
-    <span class="k">Z</span> canhão frontal ·
-    <span class="k">X</span>/<span class="k">↑</span> morteiro (UFOs) ·
-    <span class="k">M</span> som/música ·
-    <span class="k">ENTER</span> iniciar
-    <br>As <b style="color:#ff8866">BOMBAS ALIENÍGENAS ABREM CRATERAS</b> no solo — o terreno fica destruído e mais perigoso!
-    São <b style="color:#66ffcc">5 FASES</b> + ciclos infinitos, cada vez mais difíceis.
-  </div>
+  <section id="splash" aria-label="Tela inicial Moon Patrol">
+    <div class="splash-card">
+      <img class="splash-logo" src="images/logo.png" alt="Logo MPC Solutions">
+      <h1 class="splash-title">MOON PATROL</h1>
+      <p class="splash-subtitle">UMA PATRULHA ARCADE PELA SUPERFÍCIE LUNAR</p>
+      <button id="splash-start" type="button">INICIAR JOGO</button>
+      <footer id="splash-footer">© 2026 MPC SOLUTIONS®. Todos os direitos reservados. By MarcioCC - Moon Patrol 2026</footer>
+    </div>
+  </section>
+  <main id="game-page">
+    <h1>★ MOON PATROL ★</h1>
+    <canvas id="game" width="800" height="400" tabindex="0"></canvas>
+    <div id="info">
+      <span class="k">←</span><span class="k">→</span> mover ·
+      <span class="k">ESPAÇO</span> pular ·
+      <span class="k">Z</span> canhão frontal ·
+      <span class="k">X</span>/<span class="k">↑</span> morteiro (UFOs) ·
+      <span class="k">M</span> som/música ·
+      <span class="k">ENTER</span> iniciar
+      <br>As <b style="color:#ff8866">BOMBAS ALIENÍGENAS ABREM CRATERAS</b> no solo — o terreno fica destruído e mais perigoso!
+      São <b style="color:#66ffcc">5 FASES</b> + ciclos infinitos, cada vez mais difíceis.
+    </div>
+    <footer id="game-footer">© 2026 MPC SOLUTIONS®. Todos os direitos reservados. By MarcioCC - Moon Patrol 2026</footer>
+  </main>
 
 <script>
 (function(){
@@ -47,6 +91,9 @@ var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
 var W = canvas.width, H = canvas.height;
 var GROUND = 322;
+var splash = document.getElementById('splash');
+var splashButton = document.getElementById('splash-start');
+var splashVisible = true;
 
 /* ------------------ FASES ------------------ */
 var PHASES = [
@@ -327,6 +374,13 @@ function startGame(){
   SFX.start(); engSet(true,scrollSpeed);
   try{ canvas.focus(); }catch(e){}
 }
+function dismissSplash(){
+  if(!splashVisible) return;
+  splashVisible=false;
+  splash.classList.add('is-hidden');
+  startGame();
+}
+splashButton.addEventListener('click',dismissSplash);
 function addPop(wx,y,txt,col){ pops.push({x:wx,y:y,t:54,txt:txt,c:col||'#ffee66'}); }
 function addDebris(wx,wy,n,c1,c2){
   for(var i=0;i<n;i++)
@@ -376,6 +430,12 @@ function onDown(e){
   var wasDown=!!keys[e.code]||(e.key&&!!keys[String(e.key).toLowerCase()]);
   keys[e.code]=true;
   if(e.key) keys[String(e.key).toLowerCase()]=true;
+  if(splashVisible){
+    if(e.code==='Enter'||e.code==='NumpadEnter'||e.code==='Space'||e.key==='Enter'||e.key===' '){
+      e.preventDefault(); initAudio(); dismissSplash();
+    }
+    return;
+  }
   if(!wasDown&&state==='playing'){
     if(kH()&&player.cd<=0) fireCannon();
     if(kU()&&player.mcd<=0) fireMortar();
