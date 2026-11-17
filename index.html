@@ -545,11 +545,15 @@ function update(){
     }
     for(var t=0;t<tanks.length;t++){
       var tk=tanks[t];
-      if(aabb(b.x-6,b.y-3,12,6,tk.x,tk.y,tk.w,tk.h)) tanks.splice(t,1), killTank(tk); return false;
+      if(aabb(b.x-6,b.y-3,12,6,tk.x,tk.y,tk.w,tk.h)){
+        tanks.splice(t,1); killTank(tk); return false;
+      }
     }
     for(var u=0;u<ufos.length;u++){
       var uf=ufos[u];
-      if(aabb(b.x-6,b.y-3,12,6,uf.x,uf.y-4,uf.w,uf.h+8)) ufos.splice(u,1), killUfo(uf); return false;
+      if(aabb(b.x-6,b.y-3,12,6,uf.x,uf.y-4,uf.w,uf.h+8)){
+        ufos.splice(u,1); killUfo(uf); return false;
+      }
     }
     if(boss && aabb(b.x-6,b.y-3,12,6,boss.x,boss.y,boss.w,boss.h)) hitBoss(b.x,b.y);
     return true;
@@ -566,11 +570,15 @@ function update(){
     }
     for(var u=0;u<ufos.length;u++){
       var uf=ufos[u];
-      if(aabb(b.x-5,b.y-9,10,18,uf.x-3,uf.y-6,uf.w+6,uf.h+12)) ufos.splice(u,1), killUfo(uf); return false;
+      if(aabb(b.x-5,b.y-9,10,18,uf.x-3,uf.y-6,uf.w+6,uf.h+12)){
+        ufos.splice(u,1); killUfo(uf); return false;
+      }
     }
     for(var t=0;t<tanks.length;t++){
       var tk=tanks[t];
-      if(aabb(b.x-5,b.y-9,10,18,tk.x,tk.y,tk.w,tk.h)) tanks.splice(t,1), killTank(tk); return false;
+      if(aabb(b.x-5,b.y-9,10,18,tk.x,tk.y,tk.w,tk.h)){
+        tanks.splice(t,1); killTank(tk); return false;
+      }
     }
     if(boss && aabb(b.x-5,b.y-9,10,18,boss.x,boss.y,boss.w,boss.h)) hitBoss(b.x,b.y);
     for(var r=0;r<rocks.length;r++){
