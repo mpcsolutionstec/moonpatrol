@@ -1,15 +1,18 @@
 "use strict";
 
-const CACHE_NAME = "moon-patrol-pwa-v1";
+const CACHE_NAME = "moon-patrol-pwa-v2";
 const INDEX_URL = new URL("./index.html", self.location).href;
 const APP_SHELL = [
   "./index.html",
   "./manifest.webmanifest",
   "./images/logo.png",
-  "./images/apple-touch-icon.png",
-  "./images/pwa-192.png",
-  "./images/pwa-512.png",
-  "./images/pwa-maskable-512.png"
+  "./images/logomoon.png",
+  "./images/favicon.ico?v=2",
+  "./images/favicon-32.png?v=2",
+  "./images/apple-touch-icon.png?v=2",
+  "./images/pwa-192.png?v=2",
+  "./images/pwa-512.png?v=2",
+  "./images/pwa-maskable-512.png?v=2"
 ];
 
 self.addEventListener("install", (event) => {
