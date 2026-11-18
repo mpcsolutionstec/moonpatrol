@@ -31,10 +31,43 @@
     border:1px solid rgba(255,204,0,.6); border-radius:14px;
     background:rgba(8,4,20,.82); box-shadow:0 0 42px rgba(255,85,0,.24);
   }
+  .splash-logo-wrap {
+    position:relative; isolation:isolate; width:190px; max-width:56vw; aspect-ratio:1;
+    margin:0 auto 18px; animation:logo-float 4.2s ease-in-out 1s infinite;
+  }
+  .splash-logo-wrap::before {
+    content:""; position:absolute; z-index:-1; inset:-20px; border-radius:50%;
+    background:conic-gradient(from 20deg,transparent 0 12%,rgba(80,230,255,.7) 20%,transparent 34%,rgba(255,204,0,.85) 50%,transparent 68%,rgba(255,85,0,.75) 82%,transparent 94%);
+    filter:blur(13px); opacity:.65; animation:logo-aura 7s linear infinite;
+  }
+  .splash-logo-wrap::after {
+    content:""; position:absolute; z-index:0; inset:-9px; border:1px solid rgba(255,220,110,.55);
+    border-radius:14px; box-shadow:0 0 18px rgba(255,180,40,.28),inset 0 0 12px rgba(100,225,255,.12);
+    pointer-events:none; animation:logo-ring 3.4s ease-in-out infinite;
+  }
   .splash-logo {
-    display:block; width:190px; max-width:56vw; aspect-ratio:1; object-fit:contain;
-    margin:0 auto 18px; padding:8px; border-radius:10px; background:#fff;
+    position:relative; z-index:1; display:block; width:100%; height:100%; object-fit:contain;
+    padding:8px; border-radius:10px; background:#fff;
     box-shadow:0 0 28px rgba(255,204,0,.22);
+    animation:logo-enter .95s cubic-bezier(.18,.82,.26,1.18) both;
+  }
+  .splash-logo-shine {
+    position:absolute; z-index:2; inset:0; overflow:hidden; border-radius:10px; pointer-events:none;
+    background:linear-gradient(112deg,transparent 36%,rgba(255,255,255,.7) 49%,transparent 62%);
+    transform:translateX(-140%); animation:logo-shine 5.8s ease-in-out 1.2s infinite;
+  }
+  @keyframes logo-enter {
+    0% { opacity:0; transform:scale(.62) rotate(-9deg); filter:brightness(.65); }
+    68% { opacity:1; transform:scale(1.06) rotate(2deg); filter:brightness(1.12); }
+    100% { opacity:1; transform:scale(1) rotate(0); filter:brightness(1); }
+  }
+  @keyframes logo-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-7px); } }
+  @keyframes logo-aura { to { transform:rotate(360deg); } }
+  @keyframes logo-ring { 0%,100% { transform:scale(.97); opacity:.55; } 50% { transform:scale(1.035); opacity:1; } }
+  @keyframes logo-shine {
+    0%,54%,100% { transform:translateX(-140%); opacity:0; }
+    62% { opacity:.48; }
+    82% { transform:translateX(140%); opacity:.32; }
   }
   .splash-title { color:#ffcc00; font-size:clamp(26px,7vw,42px); letter-spacing:5px; text-shadow:0 0 14px #ff5500; }
   .splash-subtitle { margin-top:8px; color:#c2b8d8; font-size:13px; letter-spacing:1px; }
@@ -47,15 +80,25 @@
   @media (max-height:620px) {
     body { justify-content:flex-start; }
     .splash-card { padding:18px 22px 10px; }
-    .splash-logo { width:130px; margin-bottom:10px; }
+    .splash-logo-wrap { width:130px; margin-bottom:10px; }
     #splash-start { margin-top:14px; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .splash-logo-wrap, .splash-logo-wrap::before, .splash-logo-wrap::after, .splash-logo, .splash-logo-shine {
+      animation:none; transition:none;
+    }
+    .splash-logo { opacity:1; transform:none; filter:none; }
+    .splash-logo-shine { display:none; }
   }
 </style>
 </head>
 <body>
   <section id="splash" aria-label="Tela inicial Moon Patrol">
     <div class="splash-card">
-      <img class="splash-logo" src="images/logo.png" alt="Logo MPC Solutions">
+      <div class="splash-logo-wrap">
+        <img class="splash-logo" src="images/logo.png" alt="Logo MPC Solutions">
+        <span class="splash-logo-shine" aria-hidden="true"></span>
+      </div>
       <h1 class="splash-title">MOON PATROL</h1>
       <p class="splash-subtitle">UMA PATRULHA ARCADE PELA SUPERFÍCIE LUNAR</p>
       <button id="splash-start" type="button">INICIAR JOGO</button>
