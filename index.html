@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100821">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Moon Patrol">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./images/apple-touch-icon.png">
 <title>Moon Patrol — Arcade</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -94,6 +101,12 @@
     letter-spacing:1px; cursor:pointer; box-shadow:0 0 18px rgba(255,136,0,.35);
   }
   #splash-start:hover, #splash-start:focus-visible { background:#fff0a8; transform:translateY(-1px); }
+  #install-app {
+    margin:12px 0 0 8px; border:1px solid rgba(120,230,255,.7); border-radius:5px; padding:12px 18px;
+    color:#c7f5ff; background:rgba(18,38,58,.9); font:bold 13px 'Courier New',monospace;
+    letter-spacing:.5px; cursor:pointer;
+  }
+  #install-app:hover, #install-app:focus-visible { background:#214969; }
   @media (max-height:620px) {
     body { justify-content:flex-start; }
     .splash-card { padding:18px 22px 10px; }
@@ -112,6 +125,23 @@
   @media (max-width:380px) {
     #touch-controls { flex-direction:column; gap:8px; }
     .touch-button { min-height:54px; }
+  }
+  @media (orientation:landscape) and (max-height:620px) {
+    body { justify-content:flex-start; }
+    #game-page { padding:4px 8px calc(12px + env(safe-area-inset-bottom)); }
+    #game-page > h1 { margin-bottom:2px; font-size:clamp(15px,3.5vh,19px); letter-spacing:2px; }
+    #game { width:min(calc(100vw - 24px),calc((100vh - 128px)*2)); }
+    @supports (height:100svh) {
+      #game { width:min(calc(100vw - 24px),calc((100svh - 128px)*2)); }
+    }
+    #touch-controls {
+      position:fixed; z-index:8; left:50%; bottom:max(4px,env(safe-area-inset-bottom));
+      transform:translateX(-50%); display:flex !important; width:min(680px,calc(100vw - 16px));
+      margin:0; padding:5px; gap:7px; border:1px solid rgba(255,204,0,.32); border-radius:10px;
+      background:rgba(7,5,16,.88); backdrop-filter:blur(8px);
+    }
+    .touch-button { min-height:50px; }
+    #info { margin-top:5px; font-size:10px; line-height:1.45; }
   }
   @media (prefers-reduced-motion:reduce) {
     .splash-logo-wrap, .splash-logo-wrap::before, .splash-logo-wrap::after, .splash-logo, .splash-logo-shine {
@@ -132,6 +162,7 @@
       <h1 class="splash-title">MOON PATROL</h1>
       <p class="splash-subtitle">UMA PATRULHA ARCADE PELA SUPERFÍCIE LUNAR</p>
       <button id="splash-start" type="button">INICIAR JOGO</button>
+      <button id="install-app" type="button" hidden>INSTALAR APP</button>
       <footer id="splash-footer">© 2026 MPC SOLUTIONS®. Todos os direitos reservados. By MarcioCC - Moon Patrol 2026</footer>
     </div>
   </section>
@@ -178,7 +209,9 @@ var W = canvas.width, H = canvas.height;
 var GROUND = 322;
 var splash = document.getElementById('splash');
 var splashButton = document.getElementById('splash-start');
+var installButton = document.getElementById('install-app');
 var splashVisible = true;
+var installPromptEvent = null;
 
 /* ------------------ FASES ------------------ */
 var PHASES = [
@@ -466,6 +499,17 @@ function dismissSplash(){
   startGame();
 }
 splashButton.addEventListener('click',dismissSplash);
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault(); installPromptEvent=e; installButton.hidden=false;
+});
+installButton.addEventListener('click',function(){
+  if(!installPromptEvent) return;
+  installPromptEvent.prompt();
+  installPromptEvent.userChoice.then(function(){
+    installPromptEvent=null; installButton.hidden=true;
+  });
+});
+window.addEventListener('appinstalled',function(){ installPromptEvent=null; installButton.hidden=true; });
 function addPop(wx,y,txt,col){ pops.push({x:wx,y:y,t:54,txt:txt,c:col||'#ffee66'}); }
 function addDebris(wx,wy,n,c1,c2){
   for(var i=0;i<n;i++)
@@ -1322,6 +1366,15 @@ initTerrain();
 loop();
 try{ canvas.focus(); }catch(e){}
 })();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(err){
+      if(window.console) console.warn('PWA offline indisponível:',err);
+    });
+  });
+}
 </script>
 </body>
 </html>
