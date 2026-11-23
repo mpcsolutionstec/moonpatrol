@@ -100,7 +100,8 @@
   .splash-title { color:#ffcc00; font-size:clamp(26px,7vw,42px); letter-spacing:5px; text-shadow:0 0 14px #ff5500; }
   .splash-subtitle { margin-top:8px; color:#c2b8d8; font-size:13px; letter-spacing:1px; }
   .patrol-pick { display:flex; gap:10px; justify-content:center; margin:18px 0 0; }
-  .patrol-choice { border:1px solid #62557d; border-radius:7px; padding:9px 12px; color:#ddd4ee; background:#171126; cursor:pointer; font:12px 'Courier New',monospace; }
+  .patrol-choice { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:92px; border:1px solid #62557d; border-radius:7px; padding:7px 12px; color:#ddd4ee; background:#171126; cursor:pointer; font:12px 'Courier New',monospace; }
+  .patrol-choice img { width:70px; height:42px; object-fit:contain; }
   .patrol-choice[aria-pressed="true"] { border-color:#ffcc00; color:#ffdf73; box-shadow:0 0 12px #ff883355; }
   #splash-start {
     margin-top:24px; border:1px solid #ffdb4d; border-radius:5px; padding:13px 28px;
@@ -170,9 +171,9 @@
       <h1 class="splash-title">MOON PATROL</h1>
       <p class="splash-subtitle">UMA PATRULHA ARCADE PELA SUPERFÍCIE LUNAR</p>
       <div class="patrol-pick" role="group" aria-label="Escolha sua patrulha">
-        <button class="patrol-choice" type="button" data-patrol="0" aria-pressed="true">PATRULHA ALPHA</button>
-        <button class="patrol-choice" type="button" data-patrol="1" aria-pressed="false">PATRULHA NOVA</button>
-        <button class="patrol-choice" type="button" data-patrol="2" aria-pressed="false">PATRULHA TITAN</button>
+        <button class="patrol-choice" type="button" data-patrol="0" aria-pressed="true"><img src="images/patrol-0.png" alt="">ALPHA</button>
+        <button class="patrol-choice" type="button" data-patrol="1" aria-pressed="false"><img src="images/patrol-1.png" alt="">NOVA</button>
+        <button class="patrol-choice" type="button" data-patrol="2" aria-pressed="false"><img src="images/patrol-2.png" alt="">TITAN</button>
       </div>
       <button id="splash-start" type="button">INICIAR JOGO</button>
       <button id="install-app" type="button" hidden>INSTALAR APP</button>
@@ -226,6 +227,8 @@ var installButton = document.getElementById('install-app');
 var splashVisible = true;
 var installPromptEvent = null;
 var patrolStyle=0;
+var bgImage=new Image(); bgImage.src='images/fundo do jogo.png';
+var patrolImages=[0,1,2].map(function(i){var im=new Image();im.src='images/patrol-'+i+'.png';return im;});
 document.querySelectorAll('.patrol-choice').forEach(function(button){
   button.addEventListener('click',function(){
     patrolStyle=Number(button.getAttribute('data-patrol'))||0;
@@ -979,6 +982,14 @@ function hitBoss(bx,by){
    RENDER
    ===================================================================== */
 function drawBG(){
+  if(bgImage.complete&&bgImage.naturalWidth){
+    var scale=Math.max(W/bgImage.naturalWidth,H/bgImage.naturalHeight);
+    var iw=bgImage.naturalWidth*scale,ih=bgImage.naturalHeight*scale;
+    var drift=(scrollX*.035)%(Math.max(1,iw-W));
+    ctx.drawImage(bgImage,-drift,(H-ih)/2,iw,ih);
+    ctx.fillStyle='rgba(30,8,25,.12)';ctx.fillRect(0,0,W,H);
+    return;
+  }
   var sky=ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#74405f'); sky.addColorStop(.38,'#d35a36'); sky.addColorStop(.72,'#f58b3d'); sky.addColorStop(1,'#43213f');
   ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
   var glow=ctx.createRadialGradient(W*.62,H*.38,4,W*.62,H*.38,H*.62); glow.addColorStop(0,'rgba(255,190,95,.58)'); glow.addColorStop(1,'rgba(255,105,50,0)'); ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
@@ -1070,6 +1081,11 @@ function drawPlayer(){
   }
   ctx.save(); ctx.translate(x+player.w/2,y+player.h/2); ctx.rotate(player.tilt);
   var px=-player.w/2, py=-player.h/2;
+  var patrolImage=patrolImages[patrolStyle];
+  if(patrolImage&&patrolImage.complete&&patrolImage.naturalWidth){
+    ctx.drawImage(patrolImage,px-9,py-24,player.w+24,player.h+26);
+    ctx.restore();return;
+  }
   if(keys['ArrowRight']){
     ctx.fillStyle='rgba(255,170,60,'+(.5+Math.random()*.4)+')';
     ctx.beginPath(); ctx.moveTo(px+2,py+12); ctx.lineTo(px-9-Math.random()*7,py+14); ctx.lineTo(px+2,py+17); ctx.closePath(); ctx.fill();

@@ -1,12 +1,16 @@
 "use strict";
 
-const CACHE_NAME = "moon-patrol-pwa-v3";
+const CACHE_NAME = "moon-patrol-pwa-v4";
 const INDEX_URL = new URL("./index.html", self.location).href;
 const APP_SHELL = [
   "./index.html",
   "./manifest.webmanifest",
   "./images/logo.png",
   "./images/logomoon.png",
+  "./images/fundo%20do%20jogo.png",
+  "./images/patrol-0.png",
+  "./images/patrol-1.png",
+  "./images/patrol-2.png",
   "./images/favicon.ico?v=2",
   "./images/favicon-32.png?v=2",
   "./images/apple-touch-icon.png?v=2",
