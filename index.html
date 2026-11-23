@@ -32,8 +32,8 @@
   #info { margin-top:10px; color:#999; font-size:12px; text-align:center; line-height:1.85; max-width:820px; width:100%; }
   #touch-controls { display:none; width:min(100%,680px); gap:10px; margin-top:10px; padding:0 6px; touch-action:none; }
   .control-cluster { display:flex; gap:7px; min-width:0; }
-  .movement-controls { flex:1.1; }
-  .weapon-controls { flex:1.2; }
+  .movement-controls { display:none; }
+  .weapon-controls { flex:1; }
   .touch-button {
     flex:1; min-width:0; min-height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
     border:1px solid #665533; border-radius:8px; color:#ffdf78;
@@ -190,15 +190,16 @@
         <button class="touch-button" type="button" data-game-key="ArrowRight" aria-label="Mover para a direita"><span class="control-icon">▶</span><small>DIREITA</small></button>
       </div>
       <div class="control-cluster weapon-controls">
-        <button class="touch-button weapon" type="button" data-game-key="KeyZ" aria-label="Disparar canhão frontal"><span class="control-icon">✦</span><small>CANHÃO</small></button>
-        <button class="touch-button weapon" type="button" data-game-key="KeyX" aria-label="Disparar morteiro"><span class="control-icon">⬆</span><small>MORTEIRO</small></button>
+        <button class="touch-button weapon" type="button" data-game-key="KeyZ" aria-label="Disparar canhão e morteiro"><span class="control-icon">✦</span><small>ATIRAR</small></button>
+        <button class="touch-button jump" type="button" data-game-key="Space" aria-label="Pular"><span class="control-icon">▲</span><small>PULAR</small></button>
+        <button class="touch-button" type="button" data-game-key="KeyX" aria-label="Aumentar velocidade"><span class="control-icon">»</span><small>VELOCIDADE</small></button>
       </div>
     </div>
     <div id="info">
       <span class="k">←</span><span class="k">→</span> mover ·
       <span class="k">ESPAÇO</span> pular ·
-      <span class="k">Z</span> canhão frontal ·
-      <span class="k">X</span>/<span class="k">↑</span> morteiro (UFOs) ·
+      <span class="k">Z</span> canhão + morteiro ·
+      <span class="k">X</span> velocidade ·
       <span class="k">M</span> som/música ·
       <span class="k">ENTER</span> iniciar
       <br>As <b style="color:#ff8866">BOMBAS ALIENÍGENAS ABREM CRATERAS</b> no solo — o terreno fica destruído e mais perigoso!
@@ -341,7 +342,16 @@ var SFX={
   hit   :function(){ noiseB(.30,.28,1500,150); tone(210,.20,'sawtooth',.10,55); },
   ufoHit:function(){ noiseB(.50,.34,2600,200); tone(900,.35,'square',.11,90); },
   crater:function(){ noiseB(.55,.40,1400,70); tone(90,.45,'sine',.22,32); tone(180,.3,'sawtooth',.10,50); },
-  boom  :function(){ noiseB(.60,.45,2400,80); tone(150,.50,'sawtooth',.18,32); tone(72,.65,'square',.13,24,.03); },
+  boom  :function(){
+    noiseB(.75,.72,5200,45); noiseB(.24,.48,1300,90,.015);
+    tone(190,.62,'sawtooth',.30,28); tone(68,.85,'sine',.32,22,.025);
+    tone(880,.055,'square',.16,170,.005);
+  },
+  explosion:function(){
+    noiseB(.95,.9,6500,35); noiseB(.32,.58,1700,70,.012);
+    tone(210,.72,'sawtooth',.34,24); tone(58,1.0,'sine',.38,18,.02);
+    tone(1050,.07,'square',.20,130,.004);
+  },
   bonus :function(){ tone(660,.08,'square',.12); tone(880,.08,'square',.12,null,.08); tone(1320,.16,'square',.12,null,.16); },
   life  :function(){ var n=[523,659,784,1047]; for(var i=0;i<4;i++) tone(n[i],.10,'square',.11,null,i*.07); },
   phase :function(){ var n=[523,659,784,1047,1319,1047,1319,1568];
@@ -547,7 +557,7 @@ function addDebris(wx,wy,n,c1,c2){
                t:24+Math.random()*22,c:Math.random()<.5?c1:c2});
 }
 function destroyPatrol(fromCrater){
-  SFX.boom(); if(fromCrater) SFX.crater(); shake=20;
+  SFX.explosion(); if(fromCrater) SFX.crater(); shake=20;
   var cx=scrollX+player.x+player.w/2, cy=player.y+player.h/2;
   expls.push({x:cx,y:cy,t:46,big:true});
   addDebris(cx,cy,24,'#ffaa33','#ffee88');
@@ -596,15 +606,14 @@ function onDown(e){
     return;
   }
   if(!wasDown&&state==='playing'){
-    if(kH()&&player.cd<=0) fireCannon();
-    if(kU()&&player.mcd<=0) fireMortar();
+    if(kH()) fireWeapons();
   }
   if(e.code==='Enter'||e.code==='NumpadEnter'||e.key==='Enter'||e.keyCode===13){
     initAudio();
     if(state==='menu'||state==='gameover') startGame();
   }
   if(e.code==='KeyM') toggleMute();
-  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].indexOf(e.code)!==-1) e.preventDefault();
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyX'].indexOf(e.code)!==-1) e.preventDefault();
 }
 function onUp(e){ keys[e.code]=false; if(e.key) keys[String(e.key).toLowerCase()]=false; }
 window.addEventListener('keydown',onDown,false);
@@ -622,15 +631,14 @@ canvas.addEventListener('touchstart',function(e){
 },{passive:false});
 
 function kH(){ return keys['KeyZ']||keys['z']||keys['ControlLeft']||keys['ControlRight']; }
-function kU(){ return keys['KeyX']||keys['x']||keys['ArrowUp']||keys['ShiftLeft']||keys['ShiftRight']; }
+function kU(){ return false; }
 function kJ(){ return keys['Space']||keys[' ']; }
 function pressVirtualKey(code,button){
   if(keys[code]) return;
   keys[code]=true;
   if(button) button.classList.add('is-pressed');
   if(state==='playing'){
-    if(code==='KeyZ'&&player.cd<=0) fireCannon();
-    if(code==='KeyX'&&player.mcd<=0) fireMortar();
+    if(code==='KeyZ') fireWeapons();
   }
 }
 function releaseVirtualKey(code,button){
@@ -671,6 +679,10 @@ function fireMortar(){
   player.mcd=20; player.fu=6; SFX.mortar();
   addDebris(wx,wy,5,'#aaffff','#ffffff');
 }
+function fireWeapons(){
+  if(player.cd<=0) fireCannon();
+  if(player.mcd<=0) fireMortar();
+}
 
 /* =====================================================================
    UPDATE
@@ -696,9 +708,10 @@ function update(){
 
   var c=CFG();
   missionTime+=1/60;
-  scrollX+=scrollSpeed;
-  distance+=scrollSpeed;
-  phaseDist+=scrollSpeed;
+  var travelSpeed=scrollSpeed*(keys['KeyX']||keys['x']?1.65:1);
+  scrollX+=travelSpeed;
+  distance+=travelSpeed;
+  phaseDist+=travelSpeed;
   score+=1;
   scrollSpeed=c.speed+Math.min(1.2,phaseDist/3000);
   engSet(true,scrollSpeed);
@@ -753,8 +766,7 @@ function update(){
   }
   if(player.cd>0) player.cd--;
   if(player.mcd>0) player.mcd--;
-  if(kH()&&player.cd<=0) fireCannon();
-  if(kU()&&player.mcd<=0) fireMortar();
+  if(kH()) fireWeapons();
 
   var wasAir=!player.onGround;
   player.vy+=GRAVITY; player.y+=player.vy;
@@ -858,7 +870,7 @@ function update(){
         expls.push({x:b.x,y:gg-4,t:34,big:true});
         addDebris(b.x,gg-6,20,'#e0c090','#ff9944');
         scorch.push({x:b.x,t:160});
-        SFX.crater(); SFX.boom(); shake=Math.max(shake,b.big?13:9);
+        SFX.crater(); SFX.explosion(); shake=Math.max(shake,b.big?13:9);
       } else {
         expls.push({x:b.x,y:gg-3,t:14});
         scorch.push({x:b.x,t:90});
@@ -1390,8 +1402,8 @@ function drawMenu(){
   ctx.beginPath(); ctx.moveTo(235,142); ctx.lineTo(565,142); ctx.stroke();
 
   centerText('MISSAO: PATRULHAR A SUPERFICIE LUNAR EM 5 FASES',168,'#fff',15);
-  centerText('Z = CANHAO FRONTAL (rochas e tanques hover)',192,'#ffee88',13);
-  centerText('X / ↑ = MORTEIRO VERTICAL (UFOs e NAVE-MAE)',212,'#88eeff',13);
+  centerText('Z = CANHAO + MORTEIRO (rochas, tanques e UFOs)',192,'#ffee88',13);
+  centerText('X = AUMENTAR VELOCIDADE',212,'#88eeff',13);
   centerText('As BOMBAS inimigas ABREM CRATERAS no solo!',234,'#ff8866',14);
   centerText('Cada fase e mais rapida, com mais inimigos e crateras',254,'#ff9999',12);
 
