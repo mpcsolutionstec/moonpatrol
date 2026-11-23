@@ -1001,7 +1001,9 @@ function drawBG(){
 }
 
 function drawTerrain(){
-  ctx.fillStyle='#c9a97a';
+  var soil=ctx.createLinearGradient(0,GROUND-42,0,H);
+  soil.addColorStop(0,'#665064'); soil.addColorStop(.12,'#49384e'); soil.addColorStop(.48,'#302735'); soil.addColorStop(1,'#17151f');
+  ctx.fillStyle=soil;
   terrain.forEach(function(s){
     var sx=s.x-scrollX; if(sx>W||sx+s.w<0) return;
     if(s.type==='flat') ctx.fillRect(sx,s.y,s.w+1,H-s.y);
@@ -1015,8 +1017,8 @@ function drawTerrain(){
     if(s.type!=='crater') return;
     var sx=s.x-scrollX; if(sx>W||sx+s.w<0) return;
     var gr=ctx.createLinearGradient(0,s.y,0,H);
-    if(s.made){ gr.addColorStop(0,'#3a1408'); gr.addColorStop(1,'#0a0302'); }
-    else { gr.addColorStop(0,'#2a1410'); gr.addColorStop(1,'#080304'); }
+    if(s.made){ gr.addColorStop(0,'#5b343a'); gr.addColorStop(.12,'#281d29'); gr.addColorStop(1,'#100e17'); }
+    else { gr.addColorStop(0,'#493044'); gr.addColorStop(.14,'#241c2a'); gr.addColorStop(1,'#100e17'); }
     ctx.fillStyle=gr; ctx.fillRect(sx+6,s.y+5,s.w-12,H);
     /* brilho: crateras novas ficam incandescentes */
     var heat = s.made ? Math.max(0, 1-(s.age||0)/260) : .3;
@@ -1031,29 +1033,32 @@ function drawTerrain(){
     }
     /* borda chamuscada */
     if(s.made){
-      ctx.fillStyle='#5a3a20';
+      ctx.fillStyle='#80616a';
       ctx.fillRect(sx-2,s.y,10,5); ctx.fillRect(sx+s.w-8,s.y,10,5);
     }
   });
-  ctx.fillStyle='#a8855a';
+  /* Cascalho lunar: marcas determinísticas para o solo parecer rochoso */
   terrain.forEach(function(s){
     if(s.type==='crater') return;
     var sx=s.x-scrollX; if(sx>W||sx+s.w<0) return;
-    var sd=Math.floor(s.x/50);
-    for(var i=0;i<3;i++){
-      var cx=sx+((sd*37+i*71)%Math.max(10,s.w-14))+7;
-      var cy=s.y+14+((sd*13+i*23)%42);
-      ctx.beginPath(); ctx.ellipse(cx,cy,8,3,0,0,Math.PI*2); ctx.fill();
+    var seed=Math.floor(s.x/17);
+    for(var i=0;i<Math.max(4,Math.floor(s.w/12));i++){
+      var h1=Math.abs(Math.sin((seed+i*19)*12.9898)),h2=Math.abs(Math.sin((seed+i*31)*7.233));
+      var cx=sx+h1*Math.max(1,s.w-5),cy=s.y+7+h2*Math.min(58,H-s.y-10);
+      var rw=1.5+h1*5,rh=1+h2*2.5;
+      ctx.fillStyle=i%3===0?'rgba(174,139,157,.38)':i%3===1?'rgba(12,12,19,.48)':'rgba(105,82,105,.52)';
+      ctx.beginPath();ctx.ellipse(cx,cy,rw,rh,h1*.5,0,Math.PI*2);ctx.fill();
+      if(i%5===0){ctx.fillStyle='rgba(218,180,177,.22)';ctx.fillRect(cx-rw*.4,cy-rh*.6,rw*.7,1);}
     }
   });
   scorch.forEach(function(s){
     var sx=s.x-scrollX;
     ctx.globalAlpha=Math.min(.5,s.t/120);
-    ctx.fillStyle='#2a1a10';
+    ctx.fillStyle='#211923';
     ctx.beginPath(); ctx.ellipse(sx,GROUND+4,14,4,0,0,Math.PI*2); ctx.fill();
     ctx.globalAlpha=1;
   });
-  ctx.strokeStyle='#f4dcae'; ctx.lineWidth=2; ctx.beginPath();
+  ctx.strokeStyle='#a88d9d'; ctx.lineWidth=2; ctx.beginPath();
   var st=false;
   terrain.forEach(function(s){
     var sx=s.x-scrollX;
