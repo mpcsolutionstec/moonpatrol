@@ -227,6 +227,11 @@ var installButton = document.getElementById('install-app');
 var splashVisible = true;
 var installPromptEvent = null;
 var patrolStyle=0;
+var patrolWheelLayout=[
+  [{x:.29,y:.79,r:.105},{x:.57,y:.79,r:.105},{x:.85,y:.79,r:.105}],
+  [{x:.06,y:.76,r:.105},{x:.55,y:.76,r:.105},{x:.72,y:.76,r:.105},{x:.94,y:.76,r:.09}],
+  [{x:.07,y:.76,r:.095},{x:.27,y:.76,r:.10},{x:.47,y:.76,r:.10},{x:.94,y:.76,r:.085}]
+];
 var bgImage=new Image(); bgImage.src='images/fundo do jogo.png';
 var patrolImages=[0,1,2].map(function(i){var im=new Image();im.src='images/patrol-'+i+'.png';return im;});
 document.querySelectorAll('.patrol-choice').forEach(function(button){
@@ -1094,6 +1099,24 @@ function drawPlayer(){
     /* Os sprites de referência apontam para a esquerda; espelhar para a patrulha avançar. */
     ctx.scale(-1,1);
     ctx.drawImage(patrolImage,-38,-27,76,54);
+    var wheels=patrolWheelLayout[patrolStyle]||patrolWheelLayout[0];
+    var rotation=distance/7.5;
+    wheels.forEach(function(wheel){
+      var cx=-38+wheel.x*76,cy=-27+wheel.y*54,r=wheel.r*76;
+      ctx.fillStyle='#111016';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#62616a';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(rotation);
+      ctx.strokeStyle='#92919a';ctx.lineWidth=1.35;
+      for(var tread=0;tread<8;tread++){
+        var a=tread*Math.PI/4;
+        ctx.beginPath();ctx.moveTo(Math.cos(a)*(r*.68),Math.sin(a)*(r*.68));
+        ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();
+      }
+      ctx.fillStyle='#35343d';ctx.beginPath();ctx.arc(0,0,r*.48,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#aaa8b0';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.34,0,Math.PI*2);ctx.stroke();
+      ctx.rotate(-rotation*1.8);ctx.fillStyle='#d0cdd4';ctx.beginPath();ctx.arc(0,0,r*.17,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
     ctx.restore();return;
   }
   if(keys['ArrowRight']){
