@@ -282,7 +282,7 @@ var terrain=[], nextX=0;
 var rocks=[], ufos=[], tanks=[], turrets=[], boss=null, bossSpawned=false;
 var shots=[], mortars=[], ebullets=[], expls=[], dust=[], pops=[], scorch=[];
 var spawnRock=70, spawnUfo=150, spawnTank=200, spawnTurret=420;
-var cratersMade=0;
+var cratersMade=0, lastGeneratedCraterEnd=-10000;
 
 var stars=[], mountains=[];
 for (var i=0;i<130;i++) stars.push({x:Math.random()*W,y:Math.random()*260,s:Math.random()*1.8+.3,t:Math.random()*6.3});
@@ -336,7 +336,7 @@ function noiseB(dur,vol,f0,f1,delay){ if(actx) noiseAt(actx.currentTime+(delay||
 var SFX={
   cannon:function(){ tone(1150,.09,'square',.11,240); noiseB(.07,.10,3200,700); },
   mortar:function(){ tone(300,.22,'triangle',.15,900); noiseB(.10,.09,900,300); },
-  jump  :function(){ tone(160,.20,'triangle',.16,560); },
+  jump  :function(){ tone(125,.18,'triangle',.16,420); tone(520,.09,'sine',.055,760,.035); },
   land  :function(){ noiseB(.12,.12,700,120); },
   hit   :function(){ noiseB(.30,.28,1500,150); tone(210,.20,'sawtooth',.10,55); },
   ufoHit:function(){ noiseB(.50,.34,2600,200); tone(900,.35,'square',.11,90); },
@@ -439,18 +439,20 @@ function playStep(s,t,spb){
 function genSeg(){
   var ph=Math.min(4,phaseIdx);
   var r=Math.random();
-  var craterChance=.20+ph*.045;
-  if(r<.56-ph*.05){ terrain.push({x:nextX,y:GROUND,w:150,type:'flat'}); nextX+=150; }
-  else if(r<.56-ph*.05+craterChance){
+  var flatChance=.62-ph*.035;
+  var craterChance=.09+ph*.018;
+  var minSpacing=phaseIdx<5?430:260;
+  if(r<flatChance||nextX-lastGeneratedCraterEnd<minSpacing){ terrain.push({x:nextX,y:GROUND,w:150,type:'flat'}); nextX+=150; }
+  else if(r<flatChance+craterChance){
     var c=(58+Math.random()*52)*(1+ph*.10);
-    terrain.push({x:nextX,y:GROUND,w:c,type:'crater'}); nextX+=c;
+    terrain.push({x:nextX,y:GROUND,w:c,type:'crater'}); nextX+=c; lastGeneratedCraterEnd=nextX;
   } else {
     var h=110+Math.random()*70;
     terrain.push({x:nextX,y:GROUND,w:h,type:'hill'}); nextX+=h;
   }
 }
 function initTerrain(){
-  terrain=[]; nextX=0; cratersMade=0;
+  terrain=[]; nextX=0; cratersMade=0; lastGeneratedCraterEnd=-10000;
   for(var i=0;i<8;i++){ terrain.push({x:nextX,y:GROUND,w:120,type:'flat'}); nextX+=120; }
   for(var k=0;k<34;k++) genSeg();
 }
@@ -544,8 +546,8 @@ function addDebris(wx,wy,n,c1,c2){
     dust.push({x:wx,y:wy,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8-1,
                t:24+Math.random()*22,c:Math.random()<.5?c1:c2});
 }
-function destroyPatrol(){
-  SFX.boom(); shake=20;
+function destroyPatrol(fromCrater){
+  SFX.boom(); if(fromCrater) SFX.crater(); shake=20;
   var cx=scrollX+player.x+player.w/2, cy=player.y+player.h/2;
   expls.push({x:cx,y:cy,t:46,big:true});
   addDebris(cx,cy,24,'#ffaa33','#ffee88');
@@ -770,7 +772,7 @@ function update(){
   if(!player.onGround) tt=Math.max(-.34,Math.min(.34,player.vy*.03));
   player.tilt+=(tt-player.tilt)*.25;
 
-  if(player.y>H+60){ destroyPatrol(); return; }
+  if(player.y>H+60){ destroyPatrol(groundAt(scrollX+player.x+player.w/2)>50000); return; }
 
   /* ---- CANHÃO ---- */
   shots=shots.filter(function(b){
@@ -856,7 +858,7 @@ function update(){
         expls.push({x:b.x,y:gg-4,t:34,big:true});
         addDebris(b.x,gg-6,20,'#e0c090','#ff9944');
         scorch.push({x:b.x,t:160});
-        SFX.crater(); shake=Math.max(shake,b.big?13:9);
+        SFX.crater(); SFX.boom(); shake=Math.max(shake,b.big?13:9);
       } else {
         expls.push({x:b.x,y:gg-3,t:14});
         scorch.push({x:b.x,t:90});

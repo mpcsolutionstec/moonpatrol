@@ -1,6 +1,6 @@
-"use strict";
+﻿"use strict";
 
-const CACHE_NAME = "moon-patrol-pwa-v7";
+const CACHE_NAME = "moon-patrol-pwa-v8";
 const INDEX_URL = new URL("./index.html", self.location).href;
 const APP_SHELL = [
   "./index.html",
@@ -75,3 +75,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
