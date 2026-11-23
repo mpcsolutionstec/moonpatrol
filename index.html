@@ -1084,11 +1084,16 @@ function drawPlayer(){
       ctx.beginPath(); ctx.ellipse(x+player.w/2,gv+2,22,4,0,0,Math.PI*2); ctx.fill();
     }
   }
-  ctx.save(); ctx.translate(x+player.w/2,y+player.h/2); ctx.rotate(player.tilt);
+  ctx.save();
+  var wheelBob=player.onGround?Math.sin(distance*.11)*1.4:0;
+  ctx.translate(x+player.w/2,y+player.h/2-13+wheelBob);
+  ctx.rotate(player.tilt);
   var px=-player.w/2, py=-player.h/2;
   var patrolImage=patrolImages[patrolStyle];
   if(patrolImage&&patrolImage.complete&&patrolImage.naturalWidth){
-    ctx.drawImage(patrolImage,px-9,py-24,player.w+24,player.h+26);
+    /* Os sprites de referência apontam para a esquerda; espelhar para a patrulha avançar. */
+    ctx.scale(-1,1);
+    ctx.drawImage(patrolImage,-38,-27,76,54);
     ctx.restore();return;
   }
   if(keys['ArrowRight']){

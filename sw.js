@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "moon-patrol-pwa-v5";
+const CACHE_NAME = "moon-patrol-pwa-v6";
 const INDEX_URL = new URL("./index.html", self.location).href;
 const APP_SHELL = [
   "./index.html",
